@@ -1,1 +1,3 @@
-# movies-explorer-api
+# Проект Movies Explorer
+
+Репозиторий для бэкенда приложения.
