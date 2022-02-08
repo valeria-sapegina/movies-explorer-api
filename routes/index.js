@@ -13,7 +13,7 @@ router.use('/api/users', require('./user'));
 router.use('/api/movies', require('./movies'));
 
 router.use(() => {
-  throw new NotFoundError('Ошибка при запросе');
+  throw new NotFoundError('Ресурс по заданному запросу не найден');
 });
 
 module.exports = router;

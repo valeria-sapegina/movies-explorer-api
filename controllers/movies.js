@@ -12,9 +12,8 @@ const getMovies = (req, res, next) => {
       res.status(200).send(movies);
     })
     .catch(() => {
-      throw new Error('Произошла ошибка при получении фильмов');
-    })
-    .catch((err) => next(err));
+      next(new Error('Произошла ошибка при получении фильмов'));
+    });
 };
 
 const createMovie = (req, res, next) => {
@@ -53,12 +52,11 @@ const createMovie = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные для создания фильма');
+        next(new BadRequestError('Переданы некорректные данные для создания фильма'));
+      } else {
+        next(e);
       }
-
-      throw e;
-    })
-    .catch((err) => next(err));
+    });
 };
 
 const deleteMovie = (req, res, next) => {
@@ -80,16 +78,15 @@ const deleteMovie = (req, res, next) => {
             res.status(200).send(movie);
           }
         })
-        .catch((e) => {
-          if (e.name === 'CastError') {
-            throw new BadRequestError('Невалидный id ');
-          }
-
-          throw e;
-        })
         .catch((err) => next(err));
     })
-    .catch((err) => next(err));
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Невалидный id '));
+      } else {
+        next(e);
+      }
+    });
 };
 
 module.exports = {

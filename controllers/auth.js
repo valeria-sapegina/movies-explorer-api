@@ -16,9 +16,8 @@ const login = (req, res, next) => {
       res.status(200).send({ token });
     })
     .catch(() => {
-      throw new UnauthorizedError('Неправильные почта или пароль');
-    })
-    .catch((err) => next(err));
+      next(new UnauthorizedError('Неправильные почта или пароль'));
+    });
 };
 
 const createUser = (req, res, next) => {
@@ -40,19 +39,13 @@ const createUser = (req, res, next) => {
         })
         .catch((e) => {
           if (e.name === 'ValidationError') {
-            throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+            next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+          } else if (e.code === 11000) {
+            next(new ConflictError('Пользователь с такой почтой уже зарегистрирован'));
+          } else {
+            next(e);
           }
-
-          throw e;
-        })
-        .catch((err) => {
-          if (err.name === 'MongoServerError') {
-            throw new ConflictError('Пользователь с такой почтой уже зарегистрирован');
-          }
-
-          throw err;
-        })
-        .catch((err) => next(err));
+        });
     })
     .catch((err) => next(err));
 };

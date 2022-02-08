@@ -3,6 +3,7 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request');
 const UnauthorizedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict');
 
 const getUser = (req, res, next) => User.findOne({ _id: req.user._id })
   .then((user) => {
@@ -12,14 +13,7 @@ const getUser = (req, res, next) => User.findOne({ _id: req.user._id })
       res.status(200).send(user);
     }
   })
-  .catch((e) => {
-    if (e.name === 'CastError') {
-      throw new BadRequestError('Невалидный id');
-    }
-
-    throw e;
-  })
-  .catch((err) => next(err));
+  .catch((e) => { next(e); });
 
 const updateUser = (req, res, next) => {
   const { name, email } = req.body;
@@ -39,12 +33,13 @@ const updateUser = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные при обновлении профиля');
+        next(new BadRequestError('Переданы некорректные данные при обновлении профиля'));
+      } else if (e.code === 11000) {
+        next(new ConflictError('Указанная почта принадлежит другому пользователю'));
+      } else {
+        next(e);
       }
-
-      throw e;
-    })
-    .catch(next);
+    });
 };
 
 module.exports = {
